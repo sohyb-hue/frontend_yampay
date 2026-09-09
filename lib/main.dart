@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
-// متغير عام للتحكم بحالة الثيم في كامل التطبيق
+// ملاحظة: عند تشغيل flutter run سيتم إنشاؤه تلقائياً بواسطة Flutter
+// ignore: unused_import
+import 'l10n/app_localizations.dart';
+
+// متغيران عامان للتحكم بحالة الثيم واللغة الرسمية
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
+final ValueNotifier<Locale> localeNotifier = ValueNotifier(const Locale('ar'));
 
 void main() {
   runApp(const CyberYemenExpressApp());
@@ -15,47 +21,66 @@ class CyberYemenExpressApp extends StatelessWidget {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: themeNotifier,
       builder: (_, ThemeMode currentMode, __) {
-        return MaterialApp(
-          title: 'Yemen Express - Cyberpunk Edition',
-          debugShowCheckedModeBanner: false,
-          themeMode: currentMode,
-          // ================= الثيم النهاري (Light Theme) =================
-          theme: ThemeData.light().copyWith(
-            scaffoldBackgroundColor: const Color(0xFFF4F6F9),
-            primaryColor: const Color(0xFF0056D2),
-            cardColor: Colors.white,
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF0056D2),
-              secondary: Color(0xFF03A9F4),
-              surface: Colors.white,
-              tertiary: Color(0xFFFF007F),
-            ),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.white,
-              foregroundColor: Color(0xFF0056D2),
-              elevation: 1,
-            ),
-            dividerColor: Colors.black12,
-          ),
-          // ================= الثيم الليلي (Dark Theme) =================
-          darkTheme: ThemeData.dark().copyWith(
-            scaffoldBackgroundColor: const Color(0xFF0D0F16),
-            primaryColor: const Color(0xFF00F2FE),
-            cardColor: const Color(0xFF161B26),
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFF00F2FE),
-              secondary: Color(0xFF4FACFE),
-              surface: Color(0xFF161B26),
-              tertiary: Color(0xFFFF007F),
-            ),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFF161B26),
-              foregroundColor: Color(0xFF00F2FE),
-              elevation: 0,
-            ),
-            dividerColor: Colors.white24,
-          ),
-          home: const LoginScreen(),
+        return ValueListenableBuilder<Locale>(
+          valueListenable: localeNotifier,
+          builder: (_, Locale currentLocale, __) {
+            return MaterialApp(
+              title: 'Yemen Express - Cyberpunk Edition',
+              debugShowCheckedModeBanner: false,
+              themeMode: currentMode,
+              
+              // =========================================================
+              // ضبط إعدادات التوطين الرسمية الأكاديمية (Localizations & Locales)
+              // =========================================================
+              locale: currentLocale,
+              supportedLocales: const [
+                Locale('ar', ''), // العربية
+                Locale('en', ''), // الإنجليزية
+              ],
+              localizationsDelegates: const [
+                AppLocalizations.delegate, // المترجم المولّد للمشروع
+                GlobalMaterialLocalizations.delegate, // توطين عناصر Flutter Material
+                GlobalWidgetsLocalizations.delegate, // توطين اتجاهات الواجهات (RTL/LTR)
+                GlobalCupertinoLocalizations.delegate, // توطين عناصر iOS
+              ],
+
+              theme: ThemeData.light().copyWith(
+                scaffoldBackgroundColor: const Color(0xFFF4F6F9),
+                primaryColor: const Color(0xFF0056D2),
+                cardColor: Colors.white,
+                colorScheme: const ColorScheme.light(
+                  primary: Color(0xFF0056D2),
+                  secondary: Color(0xFF03A9F4),
+                  surface: Colors.white,
+                  tertiary: Color(0xFFFF007F),
+                ),
+                appBarTheme: const AppBarTheme(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Color(0xFF0056D2),
+                  elevation: 1,
+                ),
+                dividerColor: Colors.black12,
+              ),
+              darkTheme: ThemeData.dark().copyWith(
+                scaffoldBackgroundColor: const Color(0xFF0D0F16),
+                primaryColor: const Color(0xFF00F2FE),
+                cardColor: const Color(0xFF161B26),
+                colorScheme: const ColorScheme.dark(
+                  primary: Color(0xFF00F2FE),
+                  secondary: Color(0xFF4FACFE),
+                  surface: Color(0xFF161B26),
+                  tertiary: Color(0xFFFF007F),
+                ),
+                appBarTheme: const AppBarTheme(
+                  backgroundColor: Color(0xFF161B26),
+                  foregroundColor: Color(0xFF00F2FE),
+                  elevation: 0,
+                ),
+                dividerColor: Colors.white24,
+              ),
+              home: const LoginScreen(),
+            );
+          },
         );
       },
     );
@@ -63,21 +88,21 @@ class CyberYemenExpressApp extends StatelessWidget {
 }
 
 // =============================================================
-// 1. نماذج البيانات وبنك البيانات التفاعلي (Global State)
+// نماذج البيانات
 // =============================================================
 class Product {
   String id;
   String name;
   double price;
   String icon;
-  String category;
+  String categoryCode;
 
   Product({
     required this.id,
     required this.name,
     required this.price,
     required this.icon,
-    required this.category,
+    required this.categoryCode,
   });
 }
 
@@ -102,19 +127,19 @@ class TransactionRecord {
   });
 }
 
-List<String> categories = ['الكل', 'إلكترونيات', 'هواتف', 'طاقة شمسية', 'منتجات يمنية'];
+List<String> categoryCodes = ['all', 'electronics', 'phones', 'solar', 'yemeni'];
 
 List<Product> globalProducts = [
-  Product(id: '1', name: 'لابتوب ديل نيون AI Pro', price: 450000, icon: '💻', category: 'إلكترونيات'),
-  Product(id: '2', name: 'هاتف جالاكسي سايبر 5G', price: 280000, icon: '📱', category: 'هواتف'),
-  Product(id: '3', name: 'ساعة كمومية ذكية', price: 35000, icon: '⌚', category: 'إلكترونيات'),
-  Product(id: '4', name: 'سماعات أثيرية لاسلكية', price: 18000, icon: '🎧', category: 'إلكترونيات'),
-  Product(id: '5', name: 'شاشة هولوجرام 55 بوصة', price: 320000, icon: '📺', category: 'إلكترونيات'),
-  Product(id: '6', name: 'كاميرا رؤية ليلية سايبر', price: 520000, icon: '📷', category: 'إلكترونيات'),
-  Product(id: '7', name: 'راوتر إنترنت فضائي طائر', price: 65000, icon: '📡', category: 'إلكترونيات'),
-  Product(id: '8', name: 'منظومة طاقة شمسية ذكية', price: 185000, icon: '☀️', category: 'طاقة شمسية'),
-  Product(id: '9', name: 'لوحة مفاتيح ميكانيكية نيون', price: 22000, icon: '⌨️', category: 'إلكترونيات'),
-  Product(id: '10', name: 'بن خولاني فاخر معزز', price: 12000, icon: '☕', category: 'منتجات يمنية'),
+  Product(id: '1', name: 'لابتوب ديل نيون AI Pro', price: 450000, icon: '💻', categoryCode: 'electronics'),
+  Product(id: '2', name: 'هاتف جالاكسي سايبر 5G', price: 280000, icon: '📱', categoryCode: 'phones'),
+  Product(id: '3', name: 'ساعة كمومية ذكية', price: 35000, icon: '⌚', categoryCode: 'electronics'),
+  Product(id: '4', name: 'سماعات أثيرية لاسلكية', price: 18000, icon: '🎧', categoryCode: 'electronics'),
+  Product(id: '5', name: 'شاشة هولوجرام 55 بوصة', price: 320000, icon: '📺', categoryCode: 'electronics'),
+  Product(id: '6', name: 'كاميرا رؤية ليلية سايبر', price: 520000, icon: '📷', categoryCode: 'electronics'),
+  Product(id: '7', name: 'راوتر إنترنت فضائي طائر', price: 65000, icon: '📡', categoryCode: 'electronics'),
+  Product(id: '8', name: 'منظومة طاقة شمسية ذكية', price: 185000, icon: '☀️', categoryCode: 'solar'),
+  Product(id: '9', name: 'لوحة مفاتيح ميكانيكية نيون', price: 22000, icon: '⌨️', categoryCode: 'electronics'),
+  Product(id: '10', name: 'بن خولاني فاخر معزز', price: 12000, icon: '☕', categoryCode: 'yemeni'),
 ];
 
 List<CartItem> globalCart = [];
@@ -123,17 +148,11 @@ List<TransactionRecord> globalTransactions = [
     transactionId: 'TX-9021',
     date: '2026-09-07 18:20',
     totalAmount: 315000,
-    usedWallets: ['كريمي إكسبرس (150,000 ر.ي)', 'جوالي (165,000 ر.ي)'],
-  ),
-  TransactionRecord(
-    transactionId: 'TX-8843',
-    date: '2026-09-07 20:10',
-    totalAmount: 185000,
-    usedWallets: ['محفظة كاش (185,000 ر.ي)'],
+    usedWallets: ['كريمي إكسبرس (150,000 YR)', 'جوالي (165,000 YR)'],
   ),
 ];
 
-// أداة لتبديل الثيم متكررة في جميع الشاشات
+// أزرار التحكم باللغة والثيم
 Widget buildThemeToggle(BuildContext context) {
   bool isDark = themeNotifier.value == ThemeMode.dark;
   return IconButton(
@@ -145,8 +164,27 @@ Widget buildThemeToggle(BuildContext context) {
   );
 }
 
+Widget buildLanguageToggle(BuildContext context) {
+  bool isArabic = localeNotifier.value.languageCode == 'ar';
+  return TextButton(
+    onPressed: () {
+      localeNotifier.value = isArabic ? const Locale('en') : const Locale('ar');
+    },
+    child: Text(
+      isArabic ? 'EN' : 'عربي',
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).colorScheme.primary,
+      ),
+    ),
+  );
+}
+
+// دالة مساعدة للحصول على مترجم النصوص الأكاديمي
+AppLocalizations loc(BuildContext context) => AppLocalizations.of(context)!;
+
 // =============================================================
-// 2. شاشة تسجيل الدخول 
+// 1. شاشة تسجيل الدخول
 // =============================================================
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -183,6 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final cardColor = Theme.of(context).cardColor;
     final textColor = isDark ? Colors.white : Colors.black87;
+    final l10n = loc(context);
 
     return Scaffold(
       body: Container(
@@ -201,8 +240,14 @@ class _LoginScreenState extends State<LoginScreen> {
               Align(
                 alignment: Alignment.topRight,
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: buildThemeToggle(context),
+                  padding: const EdgeInsets.all(12.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      buildLanguageToggle(context),
+                      buildThemeToggle(context),
+                    ],
+                  ),
                 ),
               ),
               Center(
@@ -234,23 +279,18 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 15),
                           Text(
-                            'YEMEN EXPRESS CYBER',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 2,
-                              color: primaryColor,
-                            ),
+                            l10n.loginTitle,
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: primaryColor),
                           ),
-                          Text('بوابة الدفع الموحدة المتطورة', style: TextStyle(color: isDark ? Colors.grey : Colors.black54, fontSize: 12)),
+                          Text(l10n.loginSubtitle, style: TextStyle(color: isDark ? Colors.grey : Colors.black54, fontSize: 12)),
                           const SizedBox(height: 20),
 
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              _buildRoleChip('عميل', 'CUSTOMER', primaryColor),
+                              _buildRoleChip(l10n.customer, 'CUSTOMER', primaryColor),
                               const SizedBox(width: 12),
-                              _buildRoleChip('مدير النظام', 'ADMIN', Colors.purpleAccent),
+                              _buildRoleChip(l10n.admin, 'ADMIN', Colors.purpleAccent),
                             ],
                           ),
                           const SizedBox(height: 20),
@@ -259,13 +299,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: _usernameController,
                             style: TextStyle(color: textColor),
                             decoration: InputDecoration(
-                              labelText: 'اسم المستخدم',
+                              labelText: l10n.username,
                               labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
                               prefixIcon: Icon(Icons.person_outline, color: primaryColor),
                               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: textColor.withOpacity(0.2))),
                               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: primaryColor)),
                             ),
-                            validator: (v) => v!.isEmpty ? 'يرجى إدخال اسم المستخدم' : null,
+                            validator: (v) => v!.isEmpty ? l10n.usernameRequired : null,
                           ),
                           const SizedBox(height: 15),
 
@@ -274,13 +314,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             obscureText: true,
                             style: TextStyle(color: textColor),
                             decoration: InputDecoration(
-                              labelText: 'كلمة المرور',
+                              labelText: l10n.password,
                               labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
                               prefixIcon: Icon(Icons.lock_outline, color: primaryColor),
                               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: textColor.withOpacity(0.2))),
                               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: primaryColor)),
                             ),
-                            validator: (v) => v!.isEmpty ? 'يرجى إدخال كلمة المرور' : null,
+                            validator: (v) => v!.isEmpty ? l10n.passwordRequired : null,
                           ),
                           const SizedBox(height: 25),
 
@@ -295,7 +335,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 elevation: 10,
                               ),
                               onPressed: _login,
-                              child: const Text('تسجيل الدخول للنظام', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              child: Text(l10n.loginBtn, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                             ),
                           ),
                         ],
@@ -335,7 +375,7 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 // =============================================================
-// 3. متجر العملاء
+// 2. شاشة متجر العملاء
 // =============================================================
 class StoreScreen extends StatefulWidget {
   const StoreScreen({super.key});
@@ -345,11 +385,21 @@ class StoreScreen extends StatefulWidget {
 }
 
 class _StoreScreenState extends State<StoreScreen> {
-  String _selectedCategory = 'الكل';
+  String _selectedCategoryCode = 'all';
 
   List<Product> get filteredProducts {
-    if (_selectedCategory == 'الكل') return globalProducts;
-    return globalProducts.where((p) => p.category == _selectedCategory).toList();
+    if (_selectedCategoryCode == 'all') return globalProducts;
+    return globalProducts.where((p) => p.categoryCode == _selectedCategoryCode).toList();
+  }
+
+  String _getCategoryTranslation(String code, AppLocalizations l10n) {
+    switch (code) {
+      case 'electronics': return l10n.categoryElectronics;
+      case 'phones': return l10n.categoryPhones;
+      case 'solar': return l10n.categorySolar;
+      case 'yemeni': return l10n.categoryYemeni;
+      default: return l10n.categoryAll;
+    }
   }
 
   void _addToCart(Product product) {
@@ -363,7 +413,7 @@ class _StoreScreenState extends State<StoreScreen> {
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('تم إضافة ${product.name} إلى السلة 🚀'),
+        content: Text('${product.name} ${loc(context).addedToCart}'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(milliseconds: 900),
@@ -377,6 +427,7 @@ class _StoreScreenState extends State<StoreScreen> {
     final cardColor = Theme.of(context).cardColor;
     final scaffoldColor = Theme.of(context).scaffoldBackgroundColor;
     final textColor = isDark ? Colors.white : Colors.black87;
+    final l10n = loc(context);
 
     showModalBottomSheet(
       context: context,
@@ -396,7 +447,7 @@ class _StoreScreenState extends State<StoreScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('سلة التسوق الذكية', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryColor)),
+                    Text(l10n.smartCart, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryColor)),
                     IconButton(icon: Icon(Icons.close, color: isDark ? Colors.grey : Colors.black54), onPressed: () => Navigator.pop(ctx)),
                   ],
                 ),
@@ -410,7 +461,7 @@ class _StoreScreenState extends State<StoreScreen> {
                         children: [
                           Icon(Icons.remove_shopping_cart, size: 60, color: isDark ? Colors.grey : Colors.black38),
                           const SizedBox(height: 10),
-                          Text('السلة فارغة حالياً', style: TextStyle(color: isDark ? Colors.grey : Colors.black54)),
+                          Text(l10n.emptyCart, style: TextStyle(color: isDark ? Colors.grey : Colors.black54)),
                         ],
                       ),
                     ),
@@ -427,7 +478,7 @@ class _StoreScreenState extends State<StoreScreen> {
                           child: ListTile(
                             leading: Text(item.product.icon, style: const TextStyle(fontSize: 28)),
                             title: Text(item.product.name, style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
-                            subtitle: Text('${(item.product.price * item.quantity).toStringAsFixed(0)} ر.ي', style: TextStyle(color: primaryColor)),
+                            subtitle: Text('${(item.product.price * item.quantity).toStringAsFixed(0)} YR', style: TextStyle(color: primaryColor)),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -479,8 +530,8 @@ class _StoreScreenState extends State<StoreScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('الإجمالي الفعلي:', style: TextStyle(fontSize: 16, color: textColor)),
-                      Text('${total.toStringAsFixed(0)} ر.ي', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryColor)),
+                      Text(l10n.actualTotal, style: TextStyle(fontSize: 16, color: textColor)),
+                      Text('${total.toStringAsFixed(0)} YR', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryColor)),
                     ],
                   ),
                   const SizedBox(height: 15),
@@ -499,7 +550,7 @@ class _StoreScreenState extends State<StoreScreen> {
                           MaterialPageRoute(builder: (context) => SplitPaymentScreen(totalInvoiceAmount: total)),
                         );
                       },
-                      child: const Text('الانتقال للبوابة والدفع المقسّم 💳', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      child: Text(l10n.proceedToCheckout, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                     ),
                   )
                 ]
@@ -518,12 +569,14 @@ class _StoreScreenState extends State<StoreScreen> {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final cardColor = Theme.of(context).cardColor;
     final textColor = isDark ? Colors.white : Colors.black87;
+    final l10n = loc(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('متجر يمن إكسبرس المستقبلي', style: TextStyle(fontSize: 18)),
+        title: Text(l10n.storeTitle, style: const TextStyle(fontSize: 16)),
         actions: [
-          buildThemeToggle(context), // زر تغيير الوضع
+          buildLanguageToggle(context),
+          buildThemeToggle(context),
           Stack(
             alignment: Alignment.center,
             children: [
@@ -556,12 +609,12 @@ class _StoreScreenState extends State<StoreScreen> {
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: categories.length,
+              itemCount: categoryCodes.length,
               itemBuilder: (ctx, i) {
-                final cat = categories[i];
-                bool isSelected = cat == _selectedCategory;
+                final catCode = categoryCodes[i];
+                bool isSelected = catCode == _selectedCategoryCode;
                 return GestureDetector(
-                  onTap: () => setState(() => _selectedCategory = cat),
+                  onTap: () => setState(() => _selectedCategoryCode = catCode),
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 16.0),
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
@@ -570,7 +623,10 @@ class _StoreScreenState extends State<StoreScreen> {
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: isSelected ? primaryColor : Theme.of(context).dividerColor),
                     ),
-                    child: Text(cat, style: TextStyle(color: isSelected ? primaryColor : (isDark ? Colors.grey : Colors.black54), fontWeight: FontWeight.bold)),
+                    child: Text(
+                      _getCategoryTranslation(catCode, l10n), 
+                      style: TextStyle(color: isSelected ? primaryColor : (isDark ? Colors.grey : Colors.black54), fontWeight: FontWeight.bold)
+                    ),
                   ),
                 );
               },
@@ -621,7 +677,7 @@ class _StoreScreenState extends State<StoreScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${product.price.toStringAsFixed(0)} ر.ي',
+                          '${product.price.toStringAsFixed(0)} YR',
                           style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                         const SizedBox(height: 8),
@@ -637,7 +693,7 @@ class _StoreScreenState extends State<StoreScreen> {
                               elevation: 0,
                             ),
                             onPressed: () => _addToCart(product),
-                            child: const Text('إضافة للسلة', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            child: Text(l10n.addToCart, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                           ),
                         )
                       ],
@@ -654,7 +710,7 @@ class _StoreScreenState extends State<StoreScreen> {
 }
 
 // =============================================================
-// 4. لوحة تحكم مدير النظام
+// 3. لوحة تحكم مدير النظام
 // =============================================================
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -673,10 +729,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   }
 
   void _openProductDialog({Product? product, int? index}) {
+    final l10n = loc(context);
     final nameController = TextEditingController(text: product?.name ?? '');
     final priceController = TextEditingController(text: product != null ? product.price.toStringAsFixed(0) : '');
     final iconController = TextEditingController(text: product?.icon ?? '📦');
-    String selectedCat = product?.category ?? categories[1];
+    String selectedCatCode = product?.categoryCode ?? categoryCodes[1];
     
     final cardColor = Theme.of(context).cardColor;
     final primaryColor = Theme.of(context).colorScheme.primary;
@@ -686,27 +743,27 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: cardColor,
-        title: Text(product == null ? 'إضافة منتج سايبر جديد' : 'تعديل المنتج', style: TextStyle(color: primaryColor)),
+        title: Text(product == null ? l10n.addProduct : l10n.editProduct, style: TextStyle(color: primaryColor)),
         content: StatefulBuilder(
           builder: (context, setDlgState) => Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'اسم المنتج')),
-              TextField(controller: priceController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'السعر (ر.ي)')),
-              TextField(controller: iconController, decoration: const InputDecoration(labelText: 'الرمز التعبيري الإيموجي')),
+              TextField(controller: nameController, decoration: InputDecoration(labelText: l10n.productName)),
+              TextField(controller: priceController, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: l10n.productPrice)),
+              TextField(controller: iconController, decoration: InputDecoration(labelText: l10n.productEmoji)),
               const SizedBox(height: 10),
               DropdownButton<String>(
-                value: selectedCat,
+                value: selectedCatCode,
                 isExpanded: true,
                 dropdownColor: cardColor,
-                items: categories.where((c) => c != 'الكل').map((c) => DropdownMenuItem(value: c, child: Text(c, style: TextStyle(color: isDark ? Colors.white : Colors.black)))).toList(),
-                onChanged: (val) => setDlgState(() => selectedCat = val!),
+                items: categoryCodes.where((c) => c != 'all').map((c) => DropdownMenuItem(value: c, child: Text(c, style: TextStyle(color: isDark ? Colors.white : Colors.black)))).toList(),
+                onChanged: (val) => setDlgState(() => selectedCatCode = val!),
               )
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: isDark ? Colors.black : Colors.white),
             onPressed: () {
@@ -718,7 +775,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                       name: nameController.text,
                       price: double.parse(priceController.text),
                       icon: iconController.text.isEmpty ? '📦' : iconController.text,
-                      category: selectedCat,
+                      categoryCode: selectedCatCode,
                     ));
                   } else {
                     globalProducts[index!] = Product(
@@ -726,14 +783,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                       name: nameController.text,
                       price: double.parse(priceController.text),
                       icon: iconController.text,
-                      category: selectedCat,
+                      categoryCode: selectedCatCode,
                     );
                   }
                 });
                 Navigator.pop(ctx);
               }
             },
-            child: const Text('حفظ'),
+            child: Text(l10n.save),
           )
         ],
       ),
@@ -747,22 +804,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black87;
     final primaryColor = Theme.of(context).colorScheme.primary;
+    final l10n = loc(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('لوحة تحكم الأدمن - التحكم الشامل', style: TextStyle(color: isDark ? Colors.purpleAccent : primaryColor, fontSize: 16)),
+        title: Text(l10n.adminTitle, style: TextStyle(color: isDark ? Colors.purpleAccent : primaryColor, fontSize: 15)),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: isDark ? Colors.purpleAccent : primaryColor,
           labelColor: isDark ? Colors.purpleAccent : primaryColor,
           unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
-          tabs: const [
-            Tab(icon: Icon(Icons.inventory_2_outlined), text: 'إدارة المنتجات'),
-            Tab(icon: Icon(Icons.receipt_long_outlined), text: 'عمليات البيع والدفع'),
+          tabs: [
+            Tab(icon: const Icon(Icons.inventory_2_outlined), text: l10n.manageProducts),
+            Tab(icon: const Icon(Icons.receipt_long_outlined), text: l10n.salesAndPayments),
           ],
         ),
         actions: [
-          buildThemeToggle(context), // زر التبديل
+          buildLanguageToggle(context),
+          buildThemeToggle(context),
           IconButton(
             icon: Icon(Icons.logout, color: isDark ? Colors.grey : Colors.black54),
             onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const LoginScreen())),
@@ -772,7 +831,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
       body: TabBarView(
         controller: _tabController,
         children: [
-          // 1. إدارة المنتجات
           Scaffold(
             backgroundColor: Colors.transparent,
             floatingActionButton: FloatingActionButton(
@@ -790,7 +848,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                   child: ListTile(
                     leading: Text(p.icon, style: const TextStyle(fontSize: 28)),
                     title: Text(p.name, style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
-                    subtitle: Text('${p.price.toStringAsFixed(0)} ر.ي | القسم: ${p.category}', style: TextStyle(color: isDark ? Colors.purpleAccent : primaryColor)),
+                    subtitle: Text('${p.price.toStringAsFixed(0)} YR | ${p.categoryCode}', style: TextStyle(color: isDark ? Colors.purpleAccent : primaryColor)),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -809,7 +867,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
             ),
           ),
 
-          // 2. سجل المبيعات والعمليات المالية
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -821,8 +878,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('إجمالي المبيعات المحصلة:', style: TextStyle(fontSize: 15, color: textColor)),
-                        Text('${totalRevenue.toStringAsFixed(0)} ر.ي', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.greenAccent : Colors.green)),
+                        Text(l10n.totalSales, style: TextStyle(fontSize: 15, color: textColor)),
+                        Text('${totalRevenue.toStringAsFixed(0)} YR', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.greenAccent : Colors.green)),
                       ],
                     ),
                   ),
@@ -838,12 +895,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                         margin: const EdgeInsets.symmetric(vertical: 6),
                         child: ExpansionTile(
                           leading: Icon(Icons.verified_outlined, color: isDark ? Colors.greenAccent : Colors.green),
-                          title: Text('عملية رقم: ${tx.transactionId}', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
-                          subtitle: Text('المبلغ: ${tx.totalAmount.toStringAsFixed(0)} ر.ي | التاريخ: ${tx.date}', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
+                          title: Text('${l10n.txNo} ${tx.transactionId}', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+                          subtitle: Text('${l10n.amount} ${tx.totalAmount.toStringAsFixed(0)} YR | ${l10n.date} ${tx.date}', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
                           children: tx.usedWallets.map((w) => ListTile(
                             dense: true,
                             leading: Icon(Icons.subdirectory_arrow_right, color: primaryColor),
-                            title: Text('محفظة الخصم: $w', style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)),
+                            title: Text('${l10n.deductionWallet} $w', style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)),
                           )).toList(),
                         ),
                       );
@@ -860,7 +917,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
 }
 
 // =============================================================
-// 5. واجهة الدفع المقسّم
+// 4. واجهة الدفع المقسّم
 // =============================================================
 class SplitPaymentScreen extends StatefulWidget {
   final double totalInvoiceAmount;
@@ -872,10 +929,10 @@ class SplitPaymentScreen extends StatefulWidget {
 
 class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
   final List<Map<String, dynamic>> _wallets = [
-    {'id': 'kuraimi', 'name': 'كريمي إكسبرس (حاسب)', 'icon': '🏦', 'color': Colors.blue},
-    {'id': 'jawali', 'name': 'محفظة جوالي', 'icon': '📱', 'color': Colors.purple},
-    {'id': 'cash', 'name': 'محفظة كاش', 'icon': '💵', 'color': Colors.green},
-    {'id': 'floosak', 'name': 'محفظة فلوسك', 'icon': '💳', 'color': Colors.orange},
+    {'id': 'kuraimi', 'icon': '🏦'},
+    {'id': 'jawali', 'icon': '📱'},
+    {'id': 'cash', 'icon': '💵'},
+    {'id': 'floosak', 'icon': '💳'},
   ];
 
   final List<Map<String, dynamic>> _completedPayments = [];
@@ -883,15 +940,27 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
   double get paidAmount => _completedPayments.fold(0, (sum, item) => sum + (item['amount'] as double));
   double get remainingAmount => widget.totalInvoiceAmount - paidAmount;
 
+  String _getWalletTitle(String id, AppLocalizations l10n) {
+    switch (id) {
+      case 'kuraimi': return l10n.kuraimi;
+      case 'jawali': return l10n.jawali;
+      case 'cash': return l10n.cash;
+      case 'floosak': return l10n.floosak;
+      default: return id;
+    }
+  }
+
   void _payWithWallet(Map<String, dynamic> wallet) {
     if (remainingAmount <= 0) return;
 
+    final l10n = loc(context);
     final amountController = TextEditingController(text: remainingAmount.toStringAsFixed(0));
     final phoneController = TextEditingController();
     
     final cardColor = Theme.of(context).cardColor;
     final primaryColor = Theme.of(context).colorScheme.primary;
     bool isDark = Theme.of(context).brightness == Brightness.dark;
+    String walletTitle = _getWalletTitle(wallet['id'], l10n);
 
     showModalBottomSheet(
       context: context,
@@ -902,10 +971,10 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('خصم عبر ${wallet['name']}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryColor)),
+            Text('${l10n.deductVia} $walletTitle', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryColor)),
             const SizedBox(height: 15),
-            TextField(controller: amountController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'المبلغ المراد خصمه (ر.ي)')),
-            TextField(controller: phoneController, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'رقم الهاتف / المحفظة')),
+            TextField(controller: amountController, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: l10n.amountToDeduct)),
+            TextField(controller: phoneController, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: l10n.phoneWalletNo)),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -917,7 +986,7 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
                   if (val > 0 && val <= remainingAmount) {
                     setState(() {
                       _completedPayments.add({
-                        'wallet': wallet['name'],
+                        'wallet': walletTitle,
                         'amount': val,
                       });
                     });
@@ -925,7 +994,7 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
                     if (remainingAmount <= 0) _finishTransaction();
                   }
                 },
-                child: const Text('تأكيد العملية وتسجيل الخصم'),
+                child: Text(l10n.confirmDeduction),
               ),
             )
           ],
@@ -935,11 +1004,12 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
   }
 
   void _finishTransaction() {
+    final l10n = loc(context);
     globalTransactions.insert(0, TransactionRecord(
       transactionId: 'TX-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
       date: DateTime.now().toString().substring(0, 16),
       totalAmount: widget.totalInvoiceAmount,
-      usedWallets: _completedPayments.map((e) => "${e['wallet']} (${(e['amount'] as double).toStringAsFixed(0)} ر.ي)").toList(),
+      usedWallets: _completedPayments.map((e) => "${e['wallet']} (${(e['amount'] as double).toStringAsFixed(0)} YR)").toList(),
     ));
 
     globalCart.clear();
@@ -957,10 +1027,10 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
           children: [
             Icon(Icons.check_circle_outline, color: primaryColor, size: 60),
             const SizedBox(height: 10),
-            Text('اكتملت عملية السداد!', style: TextStyle(color: primaryColor)),
+            Text(l10n.paymentCompletedTitle, style: TextStyle(color: primaryColor)),
           ],
         ),
-        content: Text('تم استيفاء كامل المبلغ بنجاح عبر بوابة يمن إكسبرس الموحدة وتسجيل العملية.', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+        content: Text(l10n.paymentCompletedMsg, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
         actions: [
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: isDark ? Colors.black : Colors.white),
@@ -968,7 +1038,7 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
               Navigator.pop(ctx);
               Navigator.pop(context);
             },
-            child: const Text('العودة للمتجر الرئيسي'),
+            child: Text(l10n.backToStore),
           )
         ],
       ),
@@ -981,11 +1051,15 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
     final cardColor = Theme.of(context).cardColor;
     final primaryColor = Theme.of(context).colorScheme.primary;
     final textColor = isDark ? Colors.white : Colors.black87;
+    final l10n = loc(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('بوابة الدفع المقسّم الذكية'),
-        actions: [buildThemeToggle(context)], // زر التبديل
+        title: Text(l10n.splitGatewayTitle),
+        actions: [
+          buildLanguageToggle(context),
+          buildThemeToggle(context),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -1000,11 +1074,11 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
               ),
               child: Column(
                 children: [
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('الفاتورة الكلية:', style: TextStyle(color: textColor)), Text('${widget.totalInvoiceAmount.toStringAsFixed(0)} ر.ي', style: TextStyle(fontWeight: FontWeight.bold, color: textColor))]),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(l10n.totalInvoice, style: TextStyle(color: textColor)), Text('${widget.totalInvoiceAmount.toStringAsFixed(0)} YR', style: TextStyle(fontWeight: FontWeight.bold, color: textColor))]),
                   const SizedBox(height: 5),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('المسدد:', style: TextStyle(color: textColor)), Text('${paidAmount.toStringAsFixed(0)} ر.ي', style: TextStyle(color: isDark ? Colors.greenAccent : Colors.green))]),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(l10n.paidAmount, style: TextStyle(color: textColor)), Text('${paidAmount.toStringAsFixed(0)} YR', style: TextStyle(color: isDark ? Colors.greenAccent : Colors.green))]),
                   Divider(color: Theme.of(context).dividerColor),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('المتبقي للسداد:', style: TextStyle(color: textColor)), Text('${remainingAmount.toStringAsFixed(0)} ر.ي', style: TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold))]),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(l10n.remainingAmount, style: TextStyle(color: textColor)), Text('${remainingAmount.toStringAsFixed(0)} YR', style: TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold))]),
                 ],
               ),
             ),
@@ -1018,11 +1092,11 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
                     color: cardColor,
                     child: ListTile(
                       leading: Text(w['icon'], style: const TextStyle(fontSize: 26)),
-                      title: Text(w['name'], style: TextStyle(color: textColor)),
+                      title: Text(_getWalletTitle(w['id'], l10n), style: TextStyle(color: textColor)),
                       trailing: ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: isDark ? Colors.black : Colors.white),
                         onPressed: remainingAmount <= 0 ? null : () => _payWithWallet(w),
-                        child: const Text('خصم دفعة'),
+                        child: Text(l10n.deductPayment),
                       ),
                     ),
                   );
