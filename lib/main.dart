@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+// متغير عام للتحكم بحالة الثيم في كامل التطبيق
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
+
 void main() {
   runApp(const CyberYemenExpressApp());
 }
@@ -9,21 +12,52 @@ class CyberYemenExpressApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Yemen Express - Cyberpunk Edition',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0D0F16),
-        primaryColor: const Color(0xFF00F2FE),
-        cardColor: const Color(0xFF161B26),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF00F2FE),
-          secondary: Color(0xFF4FACFE),
-          surface: Color(0xFF161B26),
-          tertiary: Color(0xFFFF007F),
-        ),
-      ),
-      home: const LoginScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (_, ThemeMode currentMode, __) {
+        return MaterialApp(
+          title: 'Yemen Express - Cyberpunk Edition',
+          debugShowCheckedModeBanner: false,
+          themeMode: currentMode,
+          // ================= الثيم النهاري (Light Theme) =================
+          theme: ThemeData.light().copyWith(
+            scaffoldBackgroundColor: const Color(0xFFF4F6F9),
+            primaryColor: const Color(0xFF0056D2),
+            cardColor: Colors.white,
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF0056D2),
+              secondary: Color(0xFF03A9F4),
+              surface: Colors.white,
+              tertiary: Color(0xFFFF007F),
+            ),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.white,
+              foregroundColor: Color(0xFF0056D2),
+              elevation: 1,
+            ),
+            dividerColor: Colors.black12,
+          ),
+          // ================= الثيم الليلي (Dark Theme) =================
+          darkTheme: ThemeData.dark().copyWith(
+            scaffoldBackgroundColor: const Color(0xFF0D0F16),
+            primaryColor: const Color(0xFF00F2FE),
+            cardColor: const Color(0xFF161B26),
+            colorScheme: const ColorScheme.dark(
+              primary: Color(0xFF00F2FE),
+              secondary: Color(0xFF4FACFE),
+              surface: Color(0xFF161B26),
+              tertiary: Color(0xFFFF007F),
+            ),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFF161B26),
+              foregroundColor: Color(0xFF00F2FE),
+              elevation: 0,
+            ),
+            dividerColor: Colors.white24,
+          ),
+          home: const LoginScreen(),
+        );
+      },
     );
   }
 }
@@ -68,10 +102,8 @@ class TransactionRecord {
   });
 }
 
-// الأقسام المتاحة في المتجر
 List<String> categories = ['الكل', 'إلكترونيات', 'هواتف', 'طاقة شمسية', 'منتجات يمنية'];
 
-// المنتجات المستقبلية المجهزة مسبقاً
 List<Product> globalProducts = [
   Product(id: '1', name: 'لابتوب ديل نيون AI Pro', price: 450000, icon: '💻', category: 'إلكترونيات'),
   Product(id: '2', name: 'هاتف جالاكسي سايبر 5G', price: 280000, icon: '📱', category: 'هواتف'),
@@ -85,7 +117,6 @@ List<Product> globalProducts = [
   Product(id: '10', name: 'بن خولاني فاخر معزز', price: 12000, icon: '☕', category: 'منتجات يمنية'),
 ];
 
-// السلة وسجل المبيعات العام
 List<CartItem> globalCart = [];
 List<TransactionRecord> globalTransactions = [
   TransactionRecord(
@@ -102,8 +133,20 @@ List<TransactionRecord> globalTransactions = [
   ),
 ];
 
+// أداة لتبديل الثيم متكررة في جميع الشاشات
+Widget buildThemeToggle(BuildContext context) {
+  bool isDark = themeNotifier.value == ThemeMode.dark;
+  return IconButton(
+    icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+    color: Theme.of(context).colorScheme.primary,
+    onPressed: () {
+      themeNotifier.value = isDark ? ThemeMode.light : ThemeMode.dark;
+    },
+  );
+}
+
 // =============================================================
-// 2. شاشة تسجيل الدخول المستقبلي (Futuristic Login)
+// 2. شاشة تسجيل الدخول 
 // =============================================================
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -136,110 +179,132 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final cardColor = Theme.of(context).cardColor;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0D0F16), Color(0xFF1B1E2E)],
+            colors: isDark 
+                ? [const Color(0xFF0D0F16), const Color(0xFF1B1E2E)]
+                : [const Color(0xFFF4F6F9), const Color(0xFFE0E5EC)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: const Color(0xFF161B26),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFF00F2FE).withOpacity(0.5), width: 1.5),
-                boxShadow: [
-                  BoxShadow(color: const Color(0xFF00F2FE).withOpacity(0.2), blurRadius: 20, spreadRadius: 2),
-                ],
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFF00F2FE).withOpacity(0.1),
-                        border: Border.all(color: const Color(0xFF00F2FE)),
-                      ),
-                      child: const Icon(Icons.bolt, size: 50, color: Color(0xFF00F2FE)),
-                    ),
-                    const SizedBox(height: 15),
-                    const Text(
-                      'YEMEN EXPRESS CYBER',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                        color: Color(0xFF00F2FE),
-                      ),
-                    ),
-                    const Text('بوابة الدفع الموحدة المتطورة', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    const SizedBox(height: 20),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildRoleChip('عميل', 'CUSTOMER', Colors.cyan),
-                        const SizedBox(width: 12),
-                        _buildRoleChip('مدير النظام', 'ADMIN', Colors.purpleAccent),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    TextFormField(
-                      controller: _usernameController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'اسم المستخدم',
-                        prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF00F2FE)),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF00F2FE))),
-                      ),
-                      validator: (v) => v!.isEmpty ? 'يرجى إدخال اسم المستخدم' : null,
-                    ),
-                    const SizedBox(height: 15),
-
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'كلمة المرور',
-                        prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF00F2FE)),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF00F2FE))),
-                      ),
-                      validator: (v) => v!.isEmpty ? 'يرجى إدخال كلمة المرور' : null,
-                    ),
-                    const SizedBox(height: 25),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00F2FE),
-                          foregroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          elevation: 10,
-                        ),
-                        onPressed: _login,
-                        child: const Text('تسجيل الدخول للنظام', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                  ],
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: buildThemeToggle(context),
                 ),
               ),
-            ),
+              Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: primaryColor.withOpacity(0.5), width: 1.5),
+                      boxShadow: [
+                        BoxShadow(color: primaryColor.withOpacity(0.2), blurRadius: 20, spreadRadius: 2),
+                      ],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: primaryColor.withOpacity(0.1),
+                              border: Border.all(color: primaryColor),
+                            ),
+                            child: Icon(Icons.bolt, size: 50, color: primaryColor),
+                          ),
+                          const SizedBox(height: 15),
+                          Text(
+                            'YEMEN EXPRESS CYBER',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                              color: primaryColor,
+                            ),
+                          ),
+                          Text('بوابة الدفع الموحدة المتطورة', style: TextStyle(color: isDark ? Colors.grey : Colors.black54, fontSize: 12)),
+                          const SizedBox(height: 20),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildRoleChip('عميل', 'CUSTOMER', primaryColor),
+                              const SizedBox(width: 12),
+                              _buildRoleChip('مدير النظام', 'ADMIN', Colors.purpleAccent),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+
+                          TextFormField(
+                            controller: _usernameController,
+                            style: TextStyle(color: textColor),
+                            decoration: InputDecoration(
+                              labelText: 'اسم المستخدم',
+                              labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+                              prefixIcon: Icon(Icons.person_outline, color: primaryColor),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: textColor.withOpacity(0.2))),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: primaryColor)),
+                            ),
+                            validator: (v) => v!.isEmpty ? 'يرجى إدخال اسم المستخدم' : null,
+                          ),
+                          const SizedBox(height: 15),
+
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            style: TextStyle(color: textColor),
+                            decoration: InputDecoration(
+                              labelText: 'كلمة المرور',
+                              labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+                              prefixIcon: Icon(Icons.lock_outline, color: primaryColor),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: textColor.withOpacity(0.2))),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: primaryColor)),
+                            ),
+                            validator: (v) => v!.isEmpty ? 'يرجى إدخال كلمة المرور' : null,
+                          ),
+                          const SizedBox(height: 25),
+
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                foregroundColor: isDark ? Colors.black : Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 10,
+                              ),
+                              onPressed: _login,
+                              child: const Text('تسجيل الدخول للنظام', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -248,6 +313,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildRoleChip(String label, String role, Color color) {
     bool selected = _userRole == role;
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return GestureDetector(
       onTap: () => setState(() => _userRole = role),
       child: AnimatedContainer(
@@ -256,11 +323,11 @@ class _LoginScreenState extends State<LoginScreen> {
         decoration: BoxDecoration(
           color: selected ? color.withOpacity(0.2) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? color : Colors.grey.shade700, width: 1.5),
+          border: Border.all(color: selected ? color : (isDark ? Colors.grey.shade700 : Colors.grey.shade300), width: 1.5),
         ),
         child: Text(
           label,
-          style: TextStyle(color: selected ? color : Colors.grey, fontWeight: FontWeight.bold),
+          style: TextStyle(color: selected ? color : (isDark ? Colors.grey : Colors.black54), fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -268,7 +335,7 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 // =============================================================
-// 3. متجر العملاء المستقبلي الشبكي (Futuristic Grid Store)
+// 3. متجر العملاء
 // =============================================================
 class StoreScreen extends StatefulWidget {
   const StoreScreen({super.key});
@@ -297,7 +364,7 @@ class _StoreScreenState extends State<StoreScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('تم إضافة ${product.name} إلى السلة 🚀'),
-        backgroundColor: const Color(0xFF00F2FE),
+        backgroundColor: Theme.of(context).colorScheme.primary,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(milliseconds: 900),
       ),
@@ -305,9 +372,15 @@ class _StoreScreenState extends State<StoreScreen> {
   }
 
   void _openCartModal() {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final cardColor = Theme.of(context).cardColor;
+    final scaffoldColor = Theme.of(context).scaffoldBackgroundColor;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF161B26),
+      backgroundColor: cardColor,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
       builder: (ctx) => StatefulBuilder(
@@ -323,21 +396,21 @@ class _StoreScreenState extends State<StoreScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('سلة التسوق الذكية', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF00F2FE))),
-                    IconButton(icon: const Icon(Icons.close, color: Colors.grey), onPressed: () => Navigator.pop(ctx)),
+                    Text('سلة التسوق الذكية', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryColor)),
+                    IconButton(icon: Icon(Icons.close, color: isDark ? Colors.grey : Colors.black54), onPressed: () => Navigator.pop(ctx)),
                   ],
                 ),
-                const Divider(color: Colors.white24),
+                Divider(color: Theme.of(context).dividerColor),
 
                 if (globalCart.isEmpty)
-                  const Expanded(
+                  Expanded(
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.remove_shopping_cart, size: 60, color: Colors.grey),
-                          SizedBox(height: 10),
-                          Text('السلة فارغة حالياً', style: TextStyle(color: Colors.grey)),
+                          Icon(Icons.remove_shopping_cart, size: 60, color: isDark ? Colors.grey : Colors.black38),
+                          const SizedBox(height: 10),
+                          Text('السلة فارغة حالياً', style: TextStyle(color: isDark ? Colors.grey : Colors.black54)),
                         ],
                       ),
                     ),
@@ -349,12 +422,12 @@ class _StoreScreenState extends State<StoreScreen> {
                       itemBuilder: (c, index) {
                         final item = globalCart[index];
                         return Card(
-                          color: const Color(0xFF0D0F16),
+                          color: scaffoldColor,
                           margin: const EdgeInsets.symmetric(vertical: 6),
                           child: ListTile(
                             leading: Text(item.product.icon, style: const TextStyle(fontSize: 28)),
-                            title: Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text('${(item.product.price * item.quantity).toStringAsFixed(0)} ر.ي', style: const TextStyle(color: Color(0xFF00F2FE))),
+                            title: Text(item.product.name, style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+                            subtitle: Text('${(item.product.price * item.quantity).toStringAsFixed(0)} ر.ي', style: TextStyle(color: primaryColor)),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -372,7 +445,7 @@ class _StoreScreenState extends State<StoreScreen> {
                                     });
                                   },
                                 ),
-                                Text('${item.quantity}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text('${item.quantity}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor)),
                                 IconButton(
                                   icon: const Icon(Icons.add_circle_outline, color: Colors.green),
                                   onPressed: () {
@@ -383,7 +456,6 @@ class _StoreScreenState extends State<StoreScreen> {
                                     });
                                   },
                                 ),
-                                // زر إلغاء المنتج كاملاً من السلة
                                 IconButton(
                                   icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
                                   onPressed: () {
@@ -403,12 +475,12 @@ class _StoreScreenState extends State<StoreScreen> {
                   ),
 
                 if (globalCart.isNotEmpty) ...[
-                  const Divider(color: Colors.white24),
+                  Divider(color: Theme.of(context).dividerColor),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('الإجمالي الفعلي:', style: TextStyle(fontSize: 16)),
-                      Text('${total.toStringAsFixed(0)} ر.ي', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF00F2FE))),
+                      Text('الإجمالي الفعلي:', style: TextStyle(fontSize: 16, color: textColor)),
+                      Text('${total.toStringAsFixed(0)} ر.ي', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryColor)),
                     ],
                   ),
                   const SizedBox(height: 15),
@@ -416,7 +488,10 @@ class _StoreScreenState extends State<StoreScreen> {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00F2FE), foregroundColor: Colors.black),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor, 
+                        foregroundColor: isDark ? Colors.black : Colors.white
+                      ),
                       onPressed: () {
                         Navigator.pop(ctx);
                         Navigator.push(
@@ -439,17 +514,21 @@ class _StoreScreenState extends State<StoreScreen> {
   @override
   Widget build(BuildContext context) {
     int totalItemsInCart = globalCart.fold(0, (sum, i) => sum + i.quantity);
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final cardColor = Theme.of(context).cardColor;
+    final textColor = isDark ? Colors.white : Colors.black87;
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF161B26),
-        title: const Text('متجر يمن إكسبرس المستقبلي', style: TextStyle(color: Color(0xFF00F2FE), fontSize: 18)),
+        title: const Text('متجر يمن إكسبرس المستقبلي', style: TextStyle(fontSize: 18)),
         actions: [
+          buildThemeToggle(context), // زر تغيير الوضع
           Stack(
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.shopping_bag_outlined, color: Color(0xFF00F2FE), size: 28),
+                icon: Icon(Icons.shopping_bag_outlined, color: primaryColor, size: 28),
                 onPressed: _openCartModal,
               ),
               if (totalItemsInCart > 0)
@@ -465,14 +544,13 @@ class _StoreScreenState extends State<StoreScreen> {
             ],
           ),
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.grey),
+            icon: Icon(Icons.logout, color: isDark ? Colors.grey : Colors.black54),
             onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const LoginScreen())),
           )
         ],
       ),
       body: Column(
         children: [
-          // شريط الأقسام المبتكر
           Container(
             height: 60,
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
@@ -488,18 +566,16 @@ class _StoreScreenState extends State<StoreScreen> {
                     margin: const EdgeInsets.symmetric(horizontal: 16.0),
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF00F2FE).withOpacity(0.2) : const Color(0xFF161B26),
+                      color: isSelected ? primaryColor.withOpacity(0.2) : cardColor,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: isSelected ? const Color(0xFF00F2FE) : Colors.white10),
+                      border: Border.all(color: isSelected ? primaryColor : Theme.of(context).dividerColor),
                     ),
-                    child: Text(cat, style: TextStyle(color: isSelected ? const Color(0xFF00F2FE) : Colors.grey, fontWeight: FontWeight.bold)),
+                    child: Text(cat, style: TextStyle(color: isSelected ? primaryColor : (isDark ? Colors.grey : Colors.black54), fontWeight: FontWeight.bold)),
                   ),
                 );
               },
             ),
           ),
-
-          // عرض المنتجات بشكل شبكي (Grid Layout - 2 Columns)
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.all(12),
@@ -514,11 +590,11 @@ class _StoreScreenState extends State<StoreScreen> {
                 final product = filteredProducts[index];
                 return Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF161B26),
+                    color: cardColor,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withOpacity(0.08)),
+                    border: Border.all(color: isDark ? Colors.white.withOpacity(0.08) : Colors.black12),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8, spreadRadius: 1),
+                      BoxShadow(color: Colors.black.withOpacity(isDark ? 0.3 : 0.05), blurRadius: 8, spreadRadius: 1),
                     ],
                   ),
                   child: Padding(
@@ -530,7 +606,7 @@ class _StoreScreenState extends State<StoreScreen> {
                           child: Container(
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0D0F16),
+                              color: Theme.of(context).scaffoldBackgroundColor,
                               borderRadius: BorderRadius.circular(15),
                             ),
                             child: Center(child: Text(product.icon, style: const TextStyle(fontSize: 55))),
@@ -541,12 +617,12 @@ class _StoreScreenState extends State<StoreScreen> {
                           product.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: textColor),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '${product.price.toStringAsFixed(0)} ر.ي',
-                          style: const TextStyle(color: Color(0xFF00F2FE), fontWeight: FontWeight.bold, fontSize: 15),
+                          style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                         const SizedBox(height: 8),
                         SizedBox(
@@ -554,10 +630,11 @@ class _StoreScreenState extends State<StoreScreen> {
                           height: 38,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF00F2FE).withOpacity(0.15),
-                              foregroundColor: const Color(0xFF00F2FE),
-                              side: const BorderSide(color: Color(0xFF00F2FE)),
+                              backgroundColor: primaryColor.withOpacity(0.15),
+                              foregroundColor: primaryColor,
+                              side: BorderSide(color: primaryColor),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              elevation: 0,
                             ),
                             onPressed: () => _addToCart(product),
                             child: const Text('إضافة للسلة', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
@@ -577,7 +654,7 @@ class _StoreScreenState extends State<StoreScreen> {
 }
 
 // =============================================================
-// 4. لوحة تحكم مدير النظام المتطورة (Admin Analytics & Audit)
+// 4. لوحة تحكم مدير النظام
 // =============================================================
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -600,12 +677,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     final priceController = TextEditingController(text: product != null ? product.price.toStringAsFixed(0) : '');
     final iconController = TextEditingController(text: product?.icon ?? '📦');
     String selectedCat = product?.category ?? categories[1];
+    
+    final cardColor = Theme.of(context).cardColor;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B26),
-        title: Text(product == null ? 'إضافة منتج سايبر جديد' : 'تعديل المنتج', style: const TextStyle(color: Color(0xFF00F2FE))),
+        backgroundColor: cardColor,
+        title: Text(product == null ? 'إضافة منتج سايبر جديد' : 'تعديل المنتج', style: TextStyle(color: primaryColor)),
         content: StatefulBuilder(
           builder: (context, setDlgState) => Column(
             mainAxisSize: MainAxisSize.min,
@@ -617,8 +698,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
               DropdownButton<String>(
                 value: selectedCat,
                 isExpanded: true,
-                dropdownColor: const Color(0xFF161B26),
-                items: categories.where((c) => c != 'الكل').map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                dropdownColor: cardColor,
+                items: categories.where((c) => c != 'الكل').map((c) => DropdownMenuItem(value: c, child: Text(c, style: TextStyle(color: isDark ? Colors.white : Colors.black)))).toList(),
                 onChanged: (val) => setDlgState(() => selectedCat = val!),
               )
             ],
@@ -627,7 +708,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00F2FE), foregroundColor: Colors.black),
+            style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: isDark ? Colors.black : Colors.white),
             onPressed: () {
               if (nameController.text.isNotEmpty && priceController.text.isNotEmpty) {
                 setState(() {
@@ -662,22 +743,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   @override
   Widget build(BuildContext context) {
     double totalRevenue = globalTransactions.fold(0, (sum, t) => sum + t.totalAmount);
+    final cardColor = Theme.of(context).cardColor;
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF161B26),
-        title: const Text('لوحة تحكم الأدمن - التحكم الشامل', style: TextStyle(color: Colors.purpleAccent, fontSize: 16)),
+        title: Text('لوحة تحكم الأدمن - التحكم الشامل', style: TextStyle(color: isDark ? Colors.purpleAccent : primaryColor, fontSize: 16)),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Colors.purpleAccent,
+          indicatorColor: isDark ? Colors.purpleAccent : primaryColor,
+          labelColor: isDark ? Colors.purpleAccent : primaryColor,
+          unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
           tabs: const [
             Tab(icon: Icon(Icons.inventory_2_outlined), text: 'إدارة المنتجات'),
             Tab(icon: Icon(Icons.receipt_long_outlined), text: 'عمليات البيع والدفع'),
           ],
         ),
         actions: [
+          buildThemeToggle(context), // زر التبديل
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.grey),
+            icon: Icon(Icons.logout, color: isDark ? Colors.grey : Colors.black54),
             onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const LoginScreen())),
           )
         ],
@@ -689,7 +776,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
           Scaffold(
             backgroundColor: Colors.transparent,
             floatingActionButton: FloatingActionButton(
-              backgroundColor: Colors.purpleAccent,
+              backgroundColor: isDark ? Colors.purpleAccent : primaryColor,
               onPressed: () => _openProductDialog(),
               child: const Icon(Icons.add, color: Colors.white),
             ),
@@ -699,11 +786,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
               itemBuilder: (ctx, index) {
                 final p = globalProducts[index];
                 return Card(
-                  color: const Color(0xFF161B26),
+                  color: cardColor,
                   child: ListTile(
                     leading: Text(p.icon, style: const TextStyle(fontSize: 28)),
-                    title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('${p.price.toStringAsFixed(0)} ر.ي | القسم: ${p.category}', style: const TextStyle(color: Colors.purpleAccent)),
+                    title: Text(p.name, style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+                    subtitle: Text('${p.price.toStringAsFixed(0)} ر.ي | القسم: ${p.category}', style: TextStyle(color: isDark ? Colors.purpleAccent : primaryColor)),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -728,14 +815,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
             child: Column(
               children: [
                 Card(
-                  color: const Color(0xFF161B26),
+                  color: cardColor,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('إجمالي المبيعات المحصلة:', style: TextStyle(fontSize: 15)),
-                        Text('${totalRevenue.toStringAsFixed(0)} ر.ي', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.greenAccent)),
+                        Text('إجمالي المبيعات المحصلة:', style: TextStyle(fontSize: 15, color: textColor)),
+                        Text('${totalRevenue.toStringAsFixed(0)} ر.ي', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.greenAccent : Colors.green)),
                       ],
                     ),
                   ),
@@ -747,16 +834,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                     itemBuilder: (ctx, i) {
                       final tx = globalTransactions[i];
                       return Card(
-                        color: const Color(0xFF161B26),
+                        color: cardColor,
                         margin: const EdgeInsets.symmetric(vertical: 6),
                         child: ExpansionTile(
-                          leading: const Icon(Icons.verified_outlined, color: Colors.greenAccent),
-                          title: Text('عملية رقم: ${tx.transactionId}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text('المبلغ: ${tx.totalAmount.toStringAsFixed(0)} ر.ي | التاريخ: ${tx.date}'),
+                          leading: Icon(Icons.verified_outlined, color: isDark ? Colors.greenAccent : Colors.green),
+                          title: Text('عملية رقم: ${tx.transactionId}', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+                          subtitle: Text('المبلغ: ${tx.totalAmount.toStringAsFixed(0)} ر.ي | التاريخ: ${tx.date}', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
                           children: tx.usedWallets.map((w) => ListTile(
                             dense: true,
-                            leading: const Icon(Icons.subdirectory_arrow_right, color: Color(0xFF00F2FE)),
-                            title: Text('محفظة الخصم: $w', style: const TextStyle(color: Colors.white70)),
+                            leading: Icon(Icons.subdirectory_arrow_right, color: primaryColor),
+                            title: Text('محفظة الخصم: $w', style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)),
                           )).toList(),
                         ),
                       );
@@ -773,7 +860,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
 }
 
 // =============================================================
-// 5. واجهة الدفع المقسّم بأسلوب السايبر (Split Payment Gateway)
+// 5. واجهة الدفع المقسّم
 // =============================================================
 class SplitPaymentScreen extends StatefulWidget {
   final double totalInvoiceAmount;
@@ -801,17 +888,21 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
 
     final amountController = TextEditingController(text: remainingAmount.toStringAsFixed(0));
     final phoneController = TextEditingController();
+    
+    final cardColor = Theme.of(context).cardColor;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF161B26),
+      backgroundColor: cardColor,
       isScrollControlled: true,
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom + 20, top: 20, left: 20, right: 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('خصم عبر ${wallet['name']}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF00F2FE))),
+            Text('خصم عبر ${wallet['name']}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryColor)),
             const SizedBox(height: 15),
             TextField(controller: amountController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'المبلغ المراد خصمه (ر.ي)')),
             TextField(controller: phoneController, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'رقم الهاتف / المحفظة')),
@@ -820,7 +911,7 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00F2FE), foregroundColor: Colors.black),
+                style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: isDark ? Colors.black : Colors.white),
                 onPressed: () {
                   double val = double.tryParse(amountController.text) ?? 0;
                   if (val > 0 && val <= remainingAmount) {
@@ -844,7 +935,6 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
   }
 
   void _finishTransaction() {
-    // إضافتها إلى المبيعات العامة لمدير النظام
     globalTransactions.insert(0, TransactionRecord(
       transactionId: 'TX-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
       date: DateTime.now().toString().substring(0, 16),
@@ -852,24 +942,28 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
       usedWallets: _completedPayments.map((e) => "${e['wallet']} (${(e['amount'] as double).toStringAsFixed(0)} ر.ي)").toList(),
     ));
 
-    globalCart.clear(); // تفريغ السلة
+    globalCart.clear();
+
+    final cardColor = Theme.of(context).cardColor;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B26),
-        title: const Column(
+        backgroundColor: cardColor,
+        title: Column(
           children: [
-            Icon(Icons.check_circle_outline, color: Color(0xFF00F2FE), size: 60),
-            SizedBox(height: 10),
-            Text('اكتملت عملية السداد!', style: TextStyle(color: Color(0xFF00F2FE))),
+            Icon(Icons.check_circle_outline, color: primaryColor, size: 60),
+            const SizedBox(height: 10),
+            Text('اكتملت عملية السداد!', style: TextStyle(color: primaryColor)),
           ],
         ),
-        content: const Text('تم استيفاء كامل المبلغ بنجاح عبر بوابة يمن إكسبرس الموحدة وتسجيل العملية.'),
+        content: Text('تم استيفاء كامل المبلغ بنجاح عبر بوابة يمن إكسبرس الموحدة وتسجيل العملية.', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
         actions: [
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00F2FE), foregroundColor: Colors.black),
+            style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: isDark ? Colors.black : Colors.white),
             onPressed: () {
               Navigator.pop(ctx);
               Navigator.pop(context);
@@ -883,8 +977,16 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = Theme.of(context).cardColor;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
     return Scaffold(
-      appBar: AppBar(backgroundColor: const Color(0xFF161B26), title: const Text('بوابة الدفع المقسّم الذكية')),
+      appBar: AppBar(
+        title: const Text('بوابة الدفع المقسّم الذكية'),
+        actions: [buildThemeToggle(context)], // زر التبديل
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -892,17 +994,17 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF161B26),
+                color: cardColor,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF00F2FE).withOpacity(0.3)),
+                border: Border.all(color: primaryColor.withOpacity(0.3)),
               ),
               child: Column(
                 children: [
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('الفاتورة الكلية:'), Text('${widget.totalInvoiceAmount.toStringAsFixed(0)} ر.ي', style: const TextStyle(fontWeight: FontWeight.bold))]),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('الفاتورة الكلية:', style: TextStyle(color: textColor)), Text('${widget.totalInvoiceAmount.toStringAsFixed(0)} ر.ي', style: TextStyle(fontWeight: FontWeight.bold, color: textColor))]),
                   const SizedBox(height: 5),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('المسدد:'), Text('${paidAmount.toStringAsFixed(0)} ر.ي', style: const TextStyle(color: Colors.greenAccent))]),
-                  const Divider(color: Colors.white24),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('المتبقي للسداد:'), Text('${remainingAmount.toStringAsFixed(0)} ر.ي', style: const TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold))]),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('المسدد:', style: TextStyle(color: textColor)), Text('${paidAmount.toStringAsFixed(0)} ر.ي', style: TextStyle(color: isDark ? Colors.greenAccent : Colors.green))]),
+                  Divider(color: Theme.of(context).dividerColor),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('المتبقي للسداد:', style: TextStyle(color: textColor)), Text('${remainingAmount.toStringAsFixed(0)} ر.ي', style: TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold))]),
                 ],
               ),
             ),
@@ -913,12 +1015,12 @@ class _SplitPaymentScreenState extends State<SplitPaymentScreen> {
                 itemBuilder: (c, i) {
                   final w = _wallets[i];
                   return Card(
-                    color: const Color(0xFF161B26),
+                    color: cardColor,
                     child: ListTile(
                       leading: Text(w['icon'], style: const TextStyle(fontSize: 26)),
-                      title: Text(w['name']),
+                      title: Text(w['name'], style: TextStyle(color: textColor)),
                       trailing: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00F2FE), foregroundColor: Colors.black),
+                        style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: isDark ? Colors.black : Colors.white),
                         onPressed: remainingAmount <= 0 ? null : () => _payWithWallet(w),
                         child: const Text('خصم دفعة'),
                       ),
