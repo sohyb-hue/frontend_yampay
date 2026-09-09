@@ -38,7 +38,7 @@ class CyberYemenExpressApp extends StatelessWidget {
                 Locale('en', ''), // الإنجليزية
               ],
               localizationsDelegates: const [
-                AppLocalizations.delegate, // المترجم المولّد للمشروع
+                AppLocalizations.delegate,
                 GlobalMaterialLocalizations.delegate, // توطين عناصر Flutter Material
                 GlobalWidgetsLocalizations.delegate, // توطين اتجاهات الواجهات (RTL/LTR)
                 GlobalCupertinoLocalizations.delegate, // توطين عناصر iOS
